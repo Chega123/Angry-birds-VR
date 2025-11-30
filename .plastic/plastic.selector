@@ -1,0 +1,4 @@
+repository "funca 2025-09-10_20-45-02/angy_birs_true@4673696522934@cloud"
+  path "/"
+    br "/main"
+    co "/main"
