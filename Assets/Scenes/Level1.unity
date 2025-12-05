@@ -150,9 +150,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   orthographicCamera: {fileID: 886010271}
   bulletPrefab: {fileID: 5364206976346503620, guid: f2b3d60064139a745a5d51bc6c53dffa, type: 3}
-  bulletSpeed: 100
-  bulletLifetime: 10
-  shootCooldown: 2
+  bulletSpeed: 300
+  bulletLifetime: 1.5
+  shootCooldown: 1.5
   spawnDistance: 0.01
   shootDirection: {x: 0, y: 0, z: 1}
   muzzleFlash: {fileID: 0}
@@ -9639,6 +9639,7 @@ GameObject:
   - component: {fileID: 597781172}
   - component: {fileID: 597781170}
   - component: {fileID: 597781174}
+  - component: {fileID: 597781175}
   m_Layer: 0
   m_Name: TabletStreamCameraSarten
   m_TagString: Untagged
@@ -9775,6 +9776,45 @@ MonoBehaviour:
   forzarAspecto: 1
   aspectoDeseado: 1.33
   presetAspecto: 3
+--- !u!114 &597781175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597781169}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f82542edb7d0f3419a7d4a22bba59b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetPosition: {x: -19.28, y: 3.73, z: 0}
+  targetRotation: {x: 0, y: 0, z: 0}
+  transitionSpeed: 3
+  transitionCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &600929419
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14007,6 +14047,7 @@ GameObject:
   - component: {fileID: 886010271}
   - component: {fileID: 886010272}
   - component: {fileID: 886010273}
+  - component: {fileID: 886010274}
   m_Layer: 0
   m_Name: TabletStreamCameraSoldado
   m_TagString: Untagged
@@ -14139,6 +14180,45 @@ MonoBehaviour:
   forzarAspecto: 1
   aspectoDeseado: 1.33
   presetAspecto: 3
+--- !u!114 &886010274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 886010269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f82542edb7d0f3419a7d4a22bba59b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetPosition: {x: -19.28, y: 3.73, z: 0}
+  targetRotation: {x: 0, y: 0, z: 0}
+  transitionSpeed: 3
+  transitionCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &887348303 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4630380838405705126, guid: 89e80c47615e4f043926d66492d3ca5f, type: 3}

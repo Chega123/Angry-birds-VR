@@ -762,6 +762,45 @@ public class VRWebSocketServer : MonoBehaviour
     {
         try
         {
+            // NUEVO: Verificar si es un mensaje de control de cámara
+            if (jsonMessage.Contains("\"type\":\"camera_control\""))
+            {
+                Debug.Log("[VR Server] Detectado mensaje de cámara");
+                CameraControlMessage cameraMsg = JsonUtility.FromJson<CameraControlMessage>(jsonMessage);
+                
+                if (cameraMsg != null && !string.IsNullOrEmpty(cameraMsg.action))
+                {
+                    Debug.Log($"[VR Server] Procesando comando de cámara: {cameraMsg.action}");
+                    
+                    // Buscar el StreamCameraController en la cámara activa
+                    if (orthographicCamera != null)
+                    {
+                        StreamCameraController cameraController = orthographicCamera.GetComponent<StreamCameraController>();
+                        
+                        if (cameraController != null)
+                        {
+                            Debug.Log($"[VR Server] ✓ Enviando acción '{cameraMsg.action}' al StreamCameraController");
+                            cameraController.OnCameraControlMessage(cameraMsg.action);
+                        }
+                        else
+                        {
+                            Debug.LogWarning("[VR Server] StreamCameraController no encontrado en la cámara");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("[VR Server] orthographicCamera es NULL");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("[VR Server] Mensaje de cámara inválido");
+                }
+                
+                return; // Salir después de procesar el comando de cámara
+            }
+            
+            // Procesar input de touch normal
             TabletInput input = JsonUtility.FromJson<TabletInput>(jsonMessage);
             
             Debug.Log($"[VR Server] Touch recibido en modo: {GameModeManager.CurrentMode}");
@@ -820,8 +859,6 @@ public class VRWebSocketServer : MonoBehaviour
             Debug.LogError($"[VR Server] Error procesando input: {e.Message}\n{e.StackTrace}");
         }
     }
-
-
 
     
     private void OnClientDisconnected()

@@ -9,6 +9,8 @@ using TMPro;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
+using System.Collections.Generic;  // ← AÑADE ESTE
+using UnityEngine.EventSystems;
 
 public class TabletConnectionManager : MonoBehaviour
 {
@@ -36,7 +38,7 @@ public class TabletConnectionManager : MonoBehaviour
 
     [Header("Score Display")]
     [SerializeField] private TabletScoreDisplay scoreDisplay;
-    [SerializeField] private TabletWinnerDisplay winnerDisplay;  // ← NUEVO
+    [SerializeField] private TabletWinnerDisplay winnerDisplay;  // â† NUEVO
 
 
     [Header("Settings")]
@@ -68,7 +70,7 @@ public class TabletConnectionManager : MonoBehaviour
             GameObject dispatcher = new GameObject("UnityMainThreadDispatcher");
             dispatcher.AddComponent<UnityMainThreadDispatcher>();
             DontDestroyOnLoad(dispatcher);
-            Debug.Log("UnityMainThreadDispatcher creado automáticamente");
+            Debug.Log("UnityMainThreadDispatcher creado automÃ¡ticamente");
         }
         
         LoadLastConnection();
@@ -120,19 +122,19 @@ public class TabletConnectionManager : MonoBehaviour
         // 5. Validar
         if (string.IsNullOrEmpty(ip))
         {
-            UpdateStatusText("Por favor ingresa una IP válida", Color.red);
+            UpdateStatusText("Por favor ingresa una IP vÃ¡lida", Color.red);
             return;
         }
         
         if (!int.TryParse(portStr, out int port))
         {
-            UpdateStatusText("Puerto inválido", Color.red);
+            UpdateStatusText("Puerto invÃ¡lido", Color.red);
             return;
         }
         
         if (!System.Net.IPAddress.TryParse(ip, out _))
         {
-            UpdateStatusText("Formato de IP inválido", Color.red);
+            UpdateStatusText("Formato de IP invÃ¡lido", Color.red);
             return;
         }
         
@@ -156,8 +158,8 @@ public class TabletConnectionManager : MonoBehaviour
             // 9. IMPORTANTE: Enviar el modo al VR
             await SendModeToServer(mode);
             
-            UpdateStatusText("¡Conectado!", Color.green);
-            LogDebug($"Conexión exitosa en modo {mode}");
+            UpdateStatusText("Â¡Conectado!", Color.green);
+            LogDebug($"ConexiÃ³n exitosa en modo {mode}");
             await Task.Delay(1000);
             
             // 10. Cambiar a pantalla de juego
@@ -166,13 +168,13 @@ public class TabletConnectionManager : MonoBehaviour
         }
         else
         {
-            UpdateStatusText("Error de conexión", Color.red);
+            UpdateStatusText("Error de conexiÃ³n", Color.red);
             
             // Re-habilitar botones
             if (chefButton != null) chefButton.interactable = true;
             if (artilleroButton != null) artilleroButton.interactable = true;
             
-            LogDebug("Conexión fallida");
+            LogDebug("ConexiÃ³n fallida");
         }
     }
     
@@ -191,9 +193,9 @@ public class TabletConnectionManager : MonoBehaviour
                 true,
                 CancellationToken.None);
             
-            LogDebug("✓ Modo enviado al servidor");
+            LogDebug("âœ“ Modo enviado al servidor");
             
-            // Pequeño delay para que el servidor procese el modo
+            // PequeÃ±o delay para que el servidor procese el modo
             await Task.Delay(100);
         }
         catch (Exception e)
@@ -206,7 +208,7 @@ public class TabletConnectionManager : MonoBehaviour
     {
         GameMode currentMode = GameModeManager.CurrentMode;
         
-        // Resaltar botón seleccionado
+        // Resaltar botÃ³n seleccionado
         if (chefButton != null)
         {
             ColorBlock colors = chefButton.colors;
@@ -242,7 +244,7 @@ public class TabletConnectionManager : MonoBehaviour
         int savedMode = PlayerPrefs.GetInt(MODE_PREF_KEY, (int)GameMode.Chef);
         GameModeManager.CurrentMode = (GameMode)savedMode;
         
-        LogDebug($"Último modo cargado: {GameModeManager.CurrentMode}");
+        LogDebug($"Ãšltimo modo cargado: {GameModeManager.CurrentMode}");
     }
 
     private void SetupTouchIndicator()
@@ -325,7 +327,7 @@ public class TabletConnectionManager : MonoBehaviour
             
             if (completedTask == timeoutTask)
             {
-                LogDebug($"Timeout después de {connectionTimeout}s");
+                LogDebug($"Timeout despuÃ©s de {connectionTimeout}s");
                 webSocket.Abort();
                 return false;
             }
@@ -349,7 +351,7 @@ public class TabletConnectionManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogDebug($"Excepción: {e.GetType().Name}");
+            LogDebug($"ExcepciÃ³n: {e.GetType().Name}");
             LogDebug($"Mensaje: {e.Message}");
             Debug.LogError($"Error completo: {e}");
             return false;
@@ -404,6 +406,19 @@ public class TabletConnectionManager : MonoBehaviour
             
             LogDebug($"Touch detectado: Pos={touch.screenPosition}, Phase={touch.phase}");
             
+            // ✅ NUEVA VERIFICACIÓN: Ignorar toques sobre UI
+            if (IsTouchOverUI(touch.screenPosition))
+            {
+                LogDebug("Touch sobre UI - IGNORADO");
+                
+                // Ocultar indicador si estaba visible
+                if (touchIndicator != null && touchIndicator.gameObject.activeSelf)
+                {
+                    touchIndicator.gameObject.SetActive(false);
+                }
+                return;
+            }
+            
             bool isOverVideo = IsTouchOverVideoDisplay(touch.screenPosition);
             LogDebug($"Touch sobre video: {isOverVideo}");
             
@@ -448,6 +463,47 @@ public class TabletConnectionManager : MonoBehaviour
                 touchIndicator.gameObject.SetActive(false);
             }
         }
+    }
+
+    // ✅ NUEVO MÉTODO: Detectar si el toque está sobre un elemento UI (excepto el video)
+    private bool IsTouchOverUI(Vector2 touchPosition)
+    {
+        // Crear PointerEventData para el raycast
+        PointerEventData eventData = new PointerEventData(EventSystem.current)
+        {
+            position = touchPosition
+        };
+        
+        // Hacer raycast sobre UI
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+        
+        // Filtrar: ignorar solo si es un BOTÓN u otro control interactivo
+        // NO ignorar si es el RawImage del video
+        foreach (RaycastResult result in results)
+        {
+            GameObject hitObject = result.gameObject;
+            
+            // Ignorar el RawImage del video
+            if (hitObject == videoDisplay.gameObject)
+            {
+                continue;
+            }
+            
+            // Si tiene Button, InputField, Scrollbar, etc., entonces SÍ ignorar
+            if (hitObject.GetComponent<Button>() != null ||
+                hitObject.GetComponent<TMP_InputField>() != null ||
+                hitObject.GetComponent<Scrollbar>() != null ||
+                hitObject.GetComponent<Slider>() != null ||
+                hitObject.GetComponent<Toggle>() != null ||
+                hitObject.GetComponent<Dropdown>() != null)
+            {
+                LogDebug($"Touch sobre control UI detectado: {hitObject.name}");
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     private string ConvertTouchPhaseToAction(UnityEngine.InputSystem.TouchPhase phase)
@@ -495,7 +551,7 @@ public class TabletConnectionManager : MonoBehaviour
         return RectTransformUtility.RectangleContainsScreenPoint(rt, position, null);
     }
     
-    private async void SendToServer(string message)
+    public async void SendToServer(string message)
     {
         if (webSocket?.State != WebSocketState.Open)
         {
@@ -530,7 +586,7 @@ public class TabletConnectionManager : MonoBehaviour
         }
         
         isReceiving = true;
-        LogDebug("Iniciando recepción de mensajes");
+        LogDebug("Iniciando recepciÃ³n de mensajes");
         
         byte[] buffer = new byte[1024 * 1024 * 2];
         int consecutiveErrors = 0;
@@ -547,7 +603,7 @@ public class TabletConnectionManager : MonoBehaviour
                 
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    LogDebug("Servidor cerró la conexión");
+                    LogDebug("Servidor cerrÃ³ la conexiÃ³n");
                     await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", token);
                     OnConnectionLost();
                     break;
@@ -591,13 +647,13 @@ public class TabletConnectionManager : MonoBehaviour
                             }
                             catch (Exception ex)
                             {
-                               Debug.LogError($"[Tablet] Excepción procesando frame: {ex.Message}");
+                               Debug.LogError($"[Tablet] ExcepciÃ³n procesando frame: {ex.Message}");
                             }
                         });
                     }
                     else
                     {
-                        Debug.LogWarning($"[Tablet] Frame con tamaño inválido: {result.Count} bytes");
+                        Debug.LogWarning($"[Tablet] Frame con tamaÃ±o invÃ¡lido: {result.Count} bytes");
                     }
                 }
                 
@@ -610,7 +666,7 @@ public class TabletConnectionManager : MonoBehaviour
             }
             catch (OperationCanceledException)
             {
-                LogDebug("Recepción cancelada");
+                LogDebug("RecepciÃ³n cancelada");
                 break;
             }
             catch (WebSocketException wsEx)
@@ -644,7 +700,7 @@ public class TabletConnectionManager : MonoBehaviour
         }
         
         isReceiving = false;
-        LogDebug($"Recepción de mensajes terminada. Estado final: {webSocket?.State}");
+        LogDebug($"RecepciÃ³n de mensajes terminada. Estado final: {webSocket?.State}");
     }
     private void ProcessTextMessage(string message)
     {
@@ -668,7 +724,7 @@ public class TabletConnectionManager : MonoBehaviour
                         }
                     });
                 }
-                else if (msgType.type == "winner")  // ← NUEVO
+                else if (msgType.type == "winner")  // â† NUEVO
                 {
                     WinnerMessage winnerMsg = JsonUtility.FromJson<WinnerMessage>(message);
                     
@@ -702,25 +758,25 @@ public class TabletConnectionManager : MonoBehaviour
         {
             connectionPanel.SetActive(true);
             gamePanel.SetActive(false);
-            UpdateStatusText("Conexión perdida. Intenta reconectar", Color.red);
+            UpdateStatusText("ConexiÃ³n perdida. Intenta reconectar", Color.red);
             
             if (chefButton != null) chefButton.interactable = true;
             if (artilleroButton != null) artilleroButton.interactable = true;
             
-            LogDebug("Conexión perdida");
+            LogDebug("ConexiÃ³n perdida");
         });
     }
     
     public void DisconnectButton()
     {
-        LogDebug("Desconexión manual");
+        LogDebug("DesconexiÃ³n manual");
         
         if (webSocket != null && webSocket.State == WebSocketState.Open)
         {
             try
             {
                 cts?.Cancel();
-                webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Usuario desconectó", CancellationToken.None);
+                webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Usuario desconectÃ³", CancellationToken.None);
             }
             catch { }
         }
